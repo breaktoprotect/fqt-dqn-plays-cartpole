@@ -34,7 +34,7 @@ class FQT_DQN_Agent:
         self.network_update_interval = network_update_interval      # Every N episodes
         self.current_update_counter = 0
         self.replay_buffer = collections.deque([],maxlen=100_000)    # [Current state, action, reward, future state] 
-        self.minimum_size_to_fit = 5000
+        self.minimum_size_to_fit = 1000
         self.sample_batch_size = 64
     
     def create_q_network(self, num_inputs, num_hidden_1, num_hidden_2, num_outputs):
@@ -169,6 +169,30 @@ class FQT_DQN_Agent:
             #debug
             print("debug:: target q network updated!")
 
+    #* Watch a game played by trained model
+    def watch(self, frequency):
+        env = gym.make('CartPole-v0')
+        prev_observation = env.reset()
+        done = 0
+        score = 0
+
+        while not done:
+            # Render
+            time.sleep(1/frequency)
+            env.render()
+
+            # Always predict next move from model
+            action = np.argmax(self.target_q_network.predict(np.array(prev_observation).reshape(1,4)))
+
+            observation, reward, done, info = env.step(action)
+
+            score += reward
+            prev_observation = observation
+
+
+            if done:
+                print("[!] Game ended. Score: {SCORE}".format(SCORE=score))
+                env.close()
 
     def human_play(self):
         done = 0
